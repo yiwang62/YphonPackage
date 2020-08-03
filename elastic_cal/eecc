@@ -1,0 +1,36 @@
+#!/bin/csh -f
+#
+set ppx = "`pwd`"
+set hhx = $ppx:t
+set STRAIN_LIST = "-0.01 0.01"
+set STRAIN_TYPE = "e1 e2 e3 e4 e5 e6"
+
+unalias cp
+unalias mv
+
+foreach dir ( V* )
+
+if ( -e $dir ) then
+
+cd $dir
+
+foreach ee ( $STRAIN_LIST )
+foreach hh ( $STRAIN_TYPE )
+
+    set d = X"$hh""$ee"
+    if ( ! -d $d ) mkdir $d
+
+        cd $d
+
+    ~/prj/EV/bin/strain $hh $ee <../CONTCAR >POSCAR
+
+       	cd ..
+
+end
+end
+
+cd ..
+
+endif
+
+end

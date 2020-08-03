@@ -1,0 +1,2 @@
+#!/bin/csh -f
+Yphon -Born dielecfij.out -bvec -plot -pdis dfile.scc -expt exp03.dat -Gfile symmetry.mode 

@@ -1,0 +1,4 @@
+#!/bin/csh -f
+Yphon -Born dielecfij.out -pdis dfile.hcp -plot -expt exp03.dat <superfij.out
+pos2s Symmetry.pos
+Yphon -Born dielecfij.out -pdis dfile.hcp -plot -expt exp03.dat <superfij.out -Gfile symmetry.mode

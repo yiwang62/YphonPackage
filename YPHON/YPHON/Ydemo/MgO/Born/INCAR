@@ -1,0 +1,8 @@
+EDIFF=1.d-6
+PREC = H
+ISIF=0
+ISMEAR = -5
+IBRION = -1
+LEPSILON = T
+NSW=0
+

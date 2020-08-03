@@ -1,0 +1,53 @@
+FINDSYM, Version 3.2.3, August 2007
+Written by Harold T. Stokes and Dorian M. Hatch
+Brigham Young University
+ 
+poscar2findsym
+Tolerance:    0.00001
+Lattice vectors in cartesian coordinates:
+   1.45301  -2.51668   4.58429
+   1.45301   2.51668   4.58429
+  -2.90601   0.00000   4.58429
+Lattice parameters, a,b,c,alpha,beta,gamma:
+   5.42777   5.42777   5.42777  55.24807  55.24807  55.24807
+Vectors defining the unit cell (dimensionless coordinates):
+   1.00000   0.00000   0.00000
+   0.00000   1.00000   0.00000
+   0.00000   0.00000   1.00000
+Number of atoms in unit cell:
+ 10
+Type of each atom:
+  1  1  1  1  1  1  2  2  2  2
+Position of each atom (dimensionless coordinates)
+   1   0.55601   0.25000   0.94399
+   2   0.94399   0.55601   0.25000
+   3   0.25000   0.94399   0.55601
+   4   0.44399   0.75000   0.05601
+   5   0.05601   0.44399   0.75000
+   6   0.75000   0.05601   0.44399
+   7   0.14604   0.14604   0.14604
+   8   0.85396   0.85396   0.85396
+   9   0.35396   0.35396   0.35396
+  10   0.64604   0.64604   0.64604
+------------------------------------------
+Space Group 167  D3d-6     R-3c      
+Origin at    1.00000   1.00000   0.00000
+Vectors a,b,c:
+  -1.00000   0.00000   1.00000
+   1.00000  -1.00000   0.00000
+   1.00000   1.00000   1.00000
+Values of a,b,c,alpha,beta,gamma:
+   5.03336   5.03336  13.75288  90.00000  90.00000 120.00000
+Atomic positions in terms of a,b,c:
+Wyckoff position e, x = -0.30601
+   1   0.36066   0.33333   0.58333
+   2   0.66667   0.02732   0.58333
+   3   0.97268   0.63934   0.58333
+   4   0.63934   0.66667   0.41667
+   5   0.33333   0.97268   0.41667
+   6   0.02732   0.36066   0.41667
+Wyckoff position c, z =  0.14604
+   7   0.00000   0.00000   0.14604
+   9   0.00000   0.00000   0.35396
+   8   0.00000   0.00000   0.85396
+  10   0.00000   0.00000   0.64604

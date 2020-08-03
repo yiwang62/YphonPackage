@@ -1,0 +1,14 @@
+time=Tue May 28 07:36:55 2013 host=PC WINDOWS USER
+ Yphon -plot
+time=Tue May 28 07:37:09 2013 host=PC WINDOWS USER
+ Yphon -plot
+time=Tue May 28 07:38:10 2013 host=PC WINDOWS USER
+ Yphon -plot
+time=Tue May 28 07:41:59 2013 host=PC WINDOWS USER
+ Yphon -plot
+time=Tue May 28 07:43:06 2013 host=PC WINDOWS USER
+ Yphon -plot
+time=Tue May 28 07:54:23 2013 host=PC WINDOWS USER
+ Yphon -Born dielecfij.out -pdis dfile.fcc -bvec -expt exp01.dat -plot -Gfile symmetry.mode
+time=Sat Oct 17 07:07:34 2015 host=PC WINDOWS USER
+ Yphon -Born dielecfij.out -pdis dfile.fcc -bvec -expt exp01.dat -plot -Gfile symmetry.mode

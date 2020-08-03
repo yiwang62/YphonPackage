@@ -1,0 +1,140 @@
+#!/bin/csh
+#
+# A Linux script for making the symmetry.mode file for the vibrational mode analysis, in terms of 
+# irreducible representations by group theory, for phonons at the Gamma point, and the Rotation.sym 
+# file for the space group operations according to the symmetry of the crystal.
+# pos2s implicitly calls the findsym, smodes modes of the ISOTROPY software and the poscar2findsym.rb 
+# Pyhthon module from the phonopy package. 
+#
+# A final symmetry adapted basis for all Irrep's is made by Ymode 
+#
+# Usage: pos2s Symmetry.pos
+# Symmetry.pos is a file produced by Yphon before running the pos2s script.
+
+
+setenv _POSIX2_VERSION 199209
+
+unalias rm
+unalias cp
+unalias mv
+
+set s = `where pos2s | head -1`
+set t = $s:h"/"
+setenv ISODATA $t
+
+set RV = ""
+
+set posfile
+set atom
+set THR = 1.e-5
+set debug = ""
+set RV = "-Rfile rotation.tmp -Vfile vectorabc.tmp"
+
+foreach option ( $* )
+  if (x$1 == "x-atom") then
+    shift
+    set atom = "$1"
+    shift
+    continue
+  else if (x$1 == "x-debug") then
+    shift
+    set debug = "debug"
+    continue
+  else if (x$1 == "x-RV") then
+    shift
+    set RV = ""
+    continue
+  else if (x$1 == "x-THR") then
+    shift
+    set THR = "$1"
+    shift
+    continue
+  else if ( "$#argv" != 0 ) then
+    set posfile = "$1"
+    shift
+  else
+    break
+  endif
+end
+
+
+if ( ! -e "$posfile" ) then
+  echo Cannot open inputfile \""$posfile"\"
+  exit 1
+endif
+
+if ( "$atom" == "" ) then
+  set atom = "`tail +6 $posfile | head -1`"
+endif
+
+set symfile = 'findsymout.out'
+set smodesfile = 'smodesfile.in'
+set smodesout = 'smodesfile.out'
+set findsymfile = 'findsymfile.in'
+
+
+# using poscar2findsym.rb to convert the VASP.5 POSCAR file into the input format of ISOTROPY findsym
+#poscar2findsym.rb $posfile | findsym > $symfile
+
+poscar2findsym.rb $posfile > findsymfile.tmp
+
+head -1 findsymfile.tmp >$findsymfile
+echo "$THR" >>$findsymfile
+tail +3 findsymfile.tmp >>$findsymfile
+
+findsym <$findsymfile > $symfile
+
+# pick up the lattice parameter from the output of findsym
+
+grep -A 3 "Lattice vectors in cartesian coordinates:" $symfile | tail -3 >vectorabc.tmp
+grep -A 3 "Vectors a,b,c:" $symfile | tail -3 >>vectorabc.tmp
+
+set last = `grep 'Space Group' $symfile`
+echo $last >$smodesfile
+
+set GN = `echo $last | awk '{printf $3}'`
+echo $GN >>$smodesfile
+
+set lat = `grep -A 1 'Values of a,b,c,alpha,beta,gamma' $symfile | tail -1` 
+echo $lat  >>$smodesfile
+
+set natom = `grep -c 'Wyckoff position' $symfile` 
+echo $natom  >>$smodesfile
+echo $natom  >>vectorabc.tmp
+
+echo -n >atoms.tmp
+foreach i ( $atom )
+	echo $i >>atoms.tmp
+end
+
+grep 'Wyckoff position' $symfile | awk '{print $3}' | sed s/,//g> wcksymbol.tmp
+
+grep -A $natom '_atom_site_occupancy' $symfile | tail -$natom >postion.tmp
+
+awk '{nb_atom[$2]++} END {for (atom in nb_atom) {print atom,nb_atom[atom]}}' postion.tmp >rep.tmp
+awk '{print $3,$4,$5}' postion.tmp >wckposition.tmp
+
+paste atoms.tmp rep.tmp | awk '{for (i=1; i<=$3; i++) {print $1;}}' > atoms_rep.tmp
+
+paste atoms_rep.tmp wcksymbol.tmp wckposition.tmp >postion.tmp
+awk '{print $1,$2,$3,$4,$5}' postion.tmp  >>$smodesfile
+awk '{print $1,$2,$3,$4,$5}' postion.tmp  >>vectorabc.tmp
+
+echo "1"  >>$smodesfile
+#echo "GM DT" >>$smodesfile
+echo "GM" >>$smodesfile
+
+awk -F\\n "/_space_group_symop_operation_xyz/,/loop_/" $symfile | grep -v "_space_group_symop_operation_xyz" | grep -v "loop_" > rotation.tmp
+
+smodes <$smodesfile >$smodesout
+Ymode <$smodesout -atom "$atom" -POSCAR $posfile $RV
+#exit
+
+grep "Space Group"  findsym.log
+echo ""
+
+rm atoms_rep.tmp  atoms.tmp  postion.tmp  rep.tmp  wckposition.tmp  wcksymbol.tmp findsymfile.tmp
+
+if ( "$debug" == "" ) then
+    rm $symfile $smodesfile $findsymfile $smodesout vectorabc.tmp rotation.tmp
+endif

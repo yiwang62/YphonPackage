@@ -1,0 +1,89 @@
+219,220d218
+< static int Warning = 0;
+< 
+261d258
+< {1, "D", "Hydrogen", 2.00794},
+3254,3255d3250
+< 	    int *nrot = new int[natomS*natomS*9];
+< 	    for (int i=0; i<natomS*natomS*9; i++) nrot[i] = 0;
+3258a3254
+> 		
+3262d3257
+< 			if (ii < 0) continue;
+3264,3265d3258
+< 			if (jj < 0) continue;
+< 
+3270,3273c3263
+< 			    for (int y=0; y<3; y++) {
+< 				nFij[(ii*3+x)*natomS*3+jj*3+y] += nfij[x][y];
+< 				nrot[(ii*3+x)*natomS*3+jj*3+y] += 1;
+< 			    }
+---
+> 			    for (int y=0; y<3; y++) nFij[(ii*3+x)*natomS*3+jj*3+y] += nfij[x][y];
+3278,3284c3268
+< 	    for (int i=0; i<natomS*natomS*9; i++) {
+<                 if (nrot[i] <=0 || nrot[i] > Nrot) {
+< 		    printf ("\n\n ********FETAL ERROR in ResRotSym, abused nrot[i] = %d >> Nrot=%d \n\n", nrot[i], Nrot);
+< 		}
+< 		Fij_Orig[i] = nFij[i]/(double)nrot[i];
+< 	    }
+< 	    delete[] nrot;
+---
+> 	    for (int i=0; i<natomS*natomS*9; i++) Fij_Orig[i] = nFij[i]/(double)Nrot;
+3384,3385d3367
+< 	    int *nrot = new int[natomS*natomS*9];
+< 	    for (int i=0; i<natomS*natomS*9; i++) nrot[i] = 0;
+3391d3372
+< 			if (ii<0) continue;
+3395,3399c3376,3377
+< 			for (int x=0; x<3; x++) 
+< 			    for (int y=0; y<3; y++) {
+< 				nFij[ii*9+x*3+y] += nfij[x][y];
+< 			    	nrot[ii*9+x*3+y] += 1;
+< 			}
+---
+> 			for (int x=0; x<3; x++)
+> 			    for (int y=0; y<3; y++) nFij[ii*9+x*3+y] += nfij[x][y];
+3403,3410c3381
+< 	    for (int i=0; i<natomS*9; i++) {
+<                 if (nrot[i] <=0 || nrot[i] > Nrot) {
+<                     printf ("\n\n ********FETAL ERROR in ResRotSymBorn  abused nrot[i] = %d >> Nrot=%d \n\n", nrot[i], Nrot);
+< 		    exit(1);
+< 		}
+< 		BCharg[i] = nFij[i]/(double)nrot[i];
+< 	    }
+< 
+---
+> 	    for (int i=0; i<natomS*9; i++) BCharg[i] = nFij[i]/(double)Nrot;
+3428,3430d3398
+< 
+< 	    delete[] nrot;
+< 	    delete[] nFij;
+3478,3482c3446,3449
+< 	  if (Warning++ <8)
+< 	    printf("********WARNING, CANNOT mapping atom %lf %lf %lf %s for r=%d only partial symmetry restored\n", _xyz[0], _xyz[1], _xyz[2], sym, r);
+< 	    //printf("\n\n********FETAL ERROR, CANNOT mapping atom %lf %lf %lf\n\n", pxyz[0], pxyz[1], pxyz[2]);
+< 	    //printf("\n\n********FETAL ERROR, CANNOT mapping atom %lf %lf %lf\n\n", sxyz[0], sxyz[1], sxyz[2]);
+< 	    //exit(1);
+---
+> 	    printf("\n\n********FETAL ERROR, CANNOT mapping atom %lf %lf %lf %s for r=%d\n\n", _xyz[0], _xyz[1], _xyz[2], sym, r);
+> 	    printf("\n\n********FETAL ERROR, CANNOT mapping atom %lf %lf %lf\n\n", pxyz[0], pxyz[1], pxyz[2]);
+> 	    printf("\n\n********FETAL ERROR, CANNOT mapping atom %lf %lf %lf\n\n", sxyz[0], sxyz[1], sxyz[2]);
+> 	    exit(1);
+4567c4534
+<             //if (LatDYN::Debug)
+---
+>             if (LatDYN::Debug)
+5163a5131,5132
+> 	    double fup = fmaxT;
+> 
+5226a5196,5197
+> 	      if (fup <= 0.e0) fup = fmax;
+> 
+5250c5221
+< 	      for (double f=-fmax; f<1.9*fmax; f+=0.1e0*fmax) 
+---
+> 	      for (double f=-fup; f<1.9*fup; f+=0.1e0*fup) 
+5321,5322d5291
+< 	    double fup = fmaxT;
+< 	    if (fup < 0.e0) fup = fmax;

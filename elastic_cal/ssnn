@@ -1,0 +1,26 @@
+#!/bin/csh -f
+#
+set ppx = "`pwd`"
+set hhx = $ppx:t
+set STRAIN_LIST = "-0.01 0.01"
+set STRAIN_TYPE = "e1 e2 e3 e4 e5 e6"
+
+unalias cp
+unalias mv
+
+foreach dir ( V* )
+
+if ( -e $dir ) then
+
+echo -n > $dir/Cij.out
+foreach hh ( $STRAIN_TYPE )
+
+    set d0 = $dir/X"$hh""0.01"/OUTCAR
+    set d1 = $dir/X"$hh""-0.01"/OUTCAR
+    python stress.py $d0 $d1 0.01 >>$dir/Cij.out
+end
+
+
+endif
+
+end

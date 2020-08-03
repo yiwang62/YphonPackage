@@ -1,0 +1,174 @@
+#!/bin/csh -f
+#
+# This is A Linux script to collect the force constant matrix from the OUTCAR and CONTCAR files of VASP.5 
+# or the Hessian matrix from the vasprun.xml file of VASP.5. vasp_fij collects the force constants into 
+# the superfij.out file which is the input to Yphon.
+# vasp_fij first checks if the vasprun.xml file exists. If yes, it will call the C++ code vaspfijxml to 
+# convert the Hessian matrix from the vasprun.xml file into the force constant matrix. 
+#
+# Usage: vasp_fij [options] 
+# where options can be 
+# -conc contcarfile, where contcarfile is the VASP.5 CONTCAR name. The default is CONTCAR
+# -outc outcarfile, where outcarfile is the VASP.5 OUTTCAR name. The default is OUTCAR (canbe gzipped one)
+
+setenv _POSIX2_VERSION 199209
+
+unalias rm
+unalias cp
+unalias mv
+
+set conc = ""
+set outc = ""
+
+set xml = ""
+if ( -e vasprun.xml ) then
+    set xml = "vasprun.xml"
+endif
+
+foreach option ( $* )
+  if (x$1 == "x-conc") then
+    shift
+    set conc = "$1"
+    if ( ! -e $conc ) then
+      echo "********CANNOT find file $conc"
+      exit(1)
+    endif
+    shift
+    continue
+  else if (x$1 == "x-outc") then
+    shift
+    set outc = "$1"
+    if ( ! -e $outc ) then
+      echo "********CANNOT find file $outc"
+      exit(1)
+    endif
+    shift
+    continue
+  else if ( x$1 == "x-xml" ) then
+    shift
+    set xml = "$1"
+    if ( ! -e $xml ) then
+      echo "********CANNOT find file $xml"
+      exit(1)
+    endif
+    shift
+    continue
+  else if ( "$#argv" != 0 ) then
+    shift
+  else
+    break
+  endif
+end
+
+foreach trycontcar ( $conc CONTCAR.static CONTCAR )
+  set contcar=$trycontcar
+  if ( -e $contcar ) then
+     echo "I will be using CONTCAR = $contcar"
+    break
+  endif
+end
+
+if ( ! -e $contcar ) then
+  echo Cannot open CONTCAR.static or CONTCAR
+  exit 1
+endif
+
+foreach tryoutcar ( $outc OUTCAR OUTCAR.gz )
+  set outcar=$tryoutcar
+  if ( -e $outcar ) then
+    echo "I will be using OUTCAR = $outcar"
+    break
+  endif
+end
+
+if ( ! -e $outcar ) then
+  echo Cannot open OUTCAR.relax.gz or OUTCAR.gz or OUTCAR
+  exit 1
+else
+  set suffix = `echo "$outcar" | awk -F . '{print $NF}'`
+  if ( "$suffix" == "gz" ) then
+    zcat $outcar > t.m.p.OUTCAR
+    set outcar=t.m.p.OUTCAR
+  endif
+endif
+
+set line = `tail +7 $contcar | head -1`
+set natom = `echo $line | awk '{ nn=0; for (i=1; i<=NF; i++) nn += $i; print nn;}'`
+
+tail +2 $contcar | head -4 | awk 'BEGIN {getline; s=$1} {printf "%11.6lf %11.6lf %11.6lf\n",s*$1,s*$2,s*$3}' > supercell.tmp
+
+set last = `grep 'primitive cells build up your supercell' $outcar -n -a | tail -1 | awk '{print $1}' | sed 's/://g'`
+if ( "$last" == "" ) then
+    echo "********WARNING: OUTCAR error: CANNOT find line 'primitive cells build up your supercell'"
+    cp supercell.tmp primcell.tmp
+    #exit(1)
+else
+    head -$last $outcar | tail -5 | head -3 | sed 's/,//g;s/)//g' | awk '{print $4 " " $5 " " $6}' >primcell.tmp
+endif
+
+tail +6 $contcar | head -1 | awk '{for (i=1; i<=NF; i++) print $i}' >! atoms.tmp
+tail +7 $contcar | head -1 | awk '{for (i=1; i<=NF; i++) print $i}' >! rep.tmp
+
+
+paste atoms.tmp rep.tmp | awk '{for (i=1; i<=$2; i++) {print $1;}}' >! atoms_rep.tmp
+
+set last = `grep ' position of ions in fractional coordinates (direct lattice)' $outcar -n -a | tail -1 | awk '{print $1}' | sed 's/://g'`
+if ( "$last" == "" ) then
+    echo "OUTCAR error: CANNOT find line ' position of ions in fractional coordinates (direct lattice)'"
+    exit(1)
+endif
+@ nline = "$natom" + 1
+#tail +$last $outcar | head -$nline | tail +2 | cut -b -34 >! pos.tmp
+tail +$last $outcar | head -$nline | tail +2 >! pos.tmp
+
+#tail +2 $contcar | head -4 | awk 'BEGIN {getline; s=$1} {print s*$1,s*$2,s*$3}' >> supercell.tmp
+
+set kcell = `grep ' primitive cells build up your supercell.' $outcar -a | head -1 | awk '{print $1}'`
+if ( "$kcell" == "" ) then
+    echo "********WARNING, OUTCAR error: CANNOT find line ' primitive cells build up your supercell.'"
+    set kcell = 1
+    #exit(1)
+endif
+
+echo $natom $kcell>>supercell.tmp
+#echo "Cartesian" >>supercell.tmp
+echo "Direct" >>supercell.tmp
+paste pos.tmp atoms_rep.tmp >> supercell.tmp
+
+cat primcell.tmp >superfij.out
+cat supercell.tmp >>superfij.out
+rm -f primcell.tmp supercell.tmp
+
+if ( "$xml" == "" ) then
+  set last = `grep 'SECOND DERIVATIVES' $outcar -n -a | tail -1 | awk '{print $1}' | sed 's/://g'`
+  if ( "$last" == "" ) then
+    echo "OUTCAR error: CANNOT find line 'SECOND DERIVATIVES' which is the Hessian"
+    exit(1)
+  endif
+  @ nline = "$natom" * 3 + 3
+  tail +$last $outcar | head -$nline | tail +4 | cut -b 6- >>superfij.out
+else
+  set last = `grep 'hessian' $xml -n -a | tail -1 | awk '{print $1}' | sed 's/://g'`
+  if ( "$last" == "" ) then
+    echo "OUTCAR error: CANNOT find line 'hessian' which is the Hessian"
+    exit(1)
+  endif
+  @ nline = "$natom" * 3
+  @ last = "$last" + 1
+  #tail +$last $xml | head -$nline | cut -b 8- | sed "s|<\/v>||g" >superfij.tmp
+  tail +$last $xml | head -$nline | cut -b 8- >superfij.tmp
+  vaspfijxml $natom atoms_rep.tmp superfij.tmp >>superfij.out
+#exit
+  rm -f superfij.tmp
+endif
+
+rm -f atoms.tmp rep.tmp atoms_rep.tmp pos.tmp
+
+set last = `grep '  in kB ' $outcar -n -a | tail -1 | awk '{print $1}' | sed 's/://g'`
+if ( "$last" == "" ) then
+#    echo "OUTCAR warning: No stress information is found"
+    if ( -e t.m.p.OUTCAR ) rm t.m.p.OUTCAR
+    exit(0)
+endif
+tail +$last $outcar | head -1 | cut -b 9- >>superfij.out
+if ( -e t.m.p.OUTCAR ) rm t.m.p.OUTCAR

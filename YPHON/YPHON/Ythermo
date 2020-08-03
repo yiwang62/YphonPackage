@@ -1,0 +1,267 @@
+#!/bin/tcsh
+#
+
+set s = "`pwd`"
+set h = $s:t
+set x = $s:h
+set d = $x:t
+
+set Pressure = "0.0"
+set Imode = "-int2"
+set mode = "vdos"
+set cijfile = "Cij.out"
+set contcar = "Static.CON"
+set oszicar = "Static.OSZ"
+set doscar = "Static.DOS.gz"
+set fitBt = ""
+set fitE = ""
+set fitF = ""
+set fitFunc = "-BMvol"
+set gPhonon = ""
+set Hugoniot = ""
+set vmin = -1
+set vmax = 99999
+
+set pT0 = 0
+set pT1 = 1600
+set pdT = 10
+
+set emove = 0.0
+set dope = 0.0
+set thermo = "thermo"
+
+set elec = ""
+foreach option ( $* )
+  if (x$1 == "x-h") then
+    echo "USAGE: atatTh [-e] "
+    echo "       -p indir     "
+    exit
+  else if (x$1 == "x-thermo") then
+    shift
+    set thermo = "$1"
+    shift
+    continue
+  else if (x$1 == "x-cijfile") then
+    shift
+    set cijfile = "$1"
+    shift
+    continue
+  else if (x$1 == "x-contcar") then
+    shift
+    set contcar = "$1"
+    shift
+    continue
+  else if (x$1 == "x-vmin") then
+    shift
+    set vmin = `ari -n -f %.0f 10 x $1`
+    shift
+    continue
+  else if (x$1 == "x-vmax") then
+    shift
+    set vmax = `ari -n -f %.0f 10 x $1`
+    shift
+    continue
+  else if (x$1 == "x-dope") then
+    shift
+    set dope = "$1"
+    shift
+    continue
+  else if (x$1 == "x-emove") then
+    shift
+    set emove = "$1"
+    shift
+    continue
+  else if (x$1 == "x-oszicar") then
+    shift
+    set oszicar = "$1"
+    shift
+    continue
+  else if (x$1 == "x-doscar") then
+    shift
+    set doscar = "$1"
+    shift
+    continue
+  else if (x$1 == "x-Hugoniot") then
+    set Hugoniot = "-Hugoniot"
+    shift
+    continue
+  else if (x$1 == "x-e") then
+    set elec = "_e"
+    shift
+    continue
+  else if (x$1 == "x-fitF") then
+    set fitE = "-fitE"
+    set fitF = "-fitF"
+    shift
+    continue
+  else if (x$1 == "x-fitE") then
+    set fitE = "-fitE"
+    set fitF = "-fitF"
+    shift
+    continue
+  else if (x$1 == "x-fitFunc") then
+    shift
+    set fitFunc=$1
+    shift
+    continue
+  else if (x$1 == "x-fitBt") then
+    set fitBt = "-fitBt"
+    shift
+    continue
+  else if (x$1 == "x-gPhonon") then
+    set mode = "gpho"
+    shift
+    continue
+  else if (x$1 == "x-T0") then
+    shift
+    set pT0=$1
+    shift
+    continue
+  else if (x$1 == "x-T1") then
+    shift
+    set pT1=$1
+    shift
+    continue
+  else if (x$1 == "x-dT") then
+    shift
+    set pdT=$1
+    shift
+    continue
+  else if (x$1 == "x-vdos") then
+    set mode = "vdos"
+    shift
+    continue
+  else if (x$1 == "x-fitf") then
+    set mode = "fitf"
+    shift
+    continue
+  else if (x$1 == "x-int0") then
+    set Imode = "$1"
+    shift
+    continue
+  else if (x$1 == "x-int1") then
+    set Imode = "$1"
+    shift
+    continue
+  else if (x$1 == "x-int2") then
+    set Imode = "$1"
+    shift
+    continue
+  else if (x$1 == "x-Pr") then
+    shift
+    set Pressure = "$1"
+    set thermo = "thermo-$1GPa"
+    shift
+    continue
+  else if ( "$#argv" != 0 ) then
+    shift
+  endif
+end
+
+unalias cp
+unalias rm
+
+set pwd = `pwd`
+set DATADIR = "$pwd"
+set WORKDIR = "$DATADIR/$thermo"
+
+if ( ! ( -e $WORKDIR ) ) mkdir $WORKDIR
+
+set n_vol = 0
+foreach dir ( $DATADIR/V* )
+
+  if ( ! -e $dir/vdos.out ) continue
+  if ( ! -e $dir/$contcar ) continue
+  if ( ! -e $dir/$oszicar ) continue
+  echo $dir
+
+    if ( -e $dir/$doscar ) then
+        zcat $dir/$doscar >$dir/DOSCAR
+        set dfile = $dir/DOSCAR
+    else if ( -e $dir/Static.DOS) then
+        set dfile = $dir/Static.DOS
+    endif
+
+    set pfile = $dir/$contcar
+    set efile = $dir/$oszicar
+
+    if ( ! -e $efile ) then
+	echo "CANNOT find file $efile
+    else
+      if ( ! ( -z $efile ) ) then
+        set vol = `vasp_volume <$pfile`
+        set vol10 = `ari -n -f %.0f 10 x $vol`
+        if ( "$vol10" < "$vmin" ) continue
+        if ( "$vol10" > "$vmax" ) continue
+	@ n_vol = "$n_vol" + 1
+        set tn = `printf "%012.6f%s" "$vol" ".vol"`
+
+        set e = `grep "E0=" $efile | tail -1 | awk '{print $5}'`
+        set energy = `ari -n  $e + $emove`
+
+	set dp = '"'
+	echo "$vol" "$energy" "$dp$dir$dp" >$WORKDIR/$tn
+        if ($elec == "_e") then
+#	  cd $dir; atatdos -dope $dope $pT0 $pT1 $pdT <$dfile; cd $pwd
+	  cd $dir; atatdosN -intmod 1 -dope $dope $pT0 $pT1 $pdT <$dfile; cd $pwd
+        endif
+        set l_poscar = $pfile
+      endif
+    endif
+end
+
+        set line = `head -6 $l_poscar | tail -1`
+	set _x = `echo $line | awk '{print $1}' | sed 's/[^0-9]//g'`
+	if ( "$_x" == "" ) then
+	  set line = `head -7 $l_poscar | tail -1`
+	endif
+	set natom = 0
+	foreach i ( $line )
+		@ natom = "$natom" + "$i"
+	end
+
+	echo " $natom $n_vol $pT0 $pT1 $pdT" > $WORKDIR/data.in
+
+sort -k 1 -n $WORKDIR/*.vol >$WORKDIR/fit22.tmp
+cat $WORKDIR/fit22.tmp
+rm $WORKDIR/*.vol
+if ( "$fitE" != "-fitE" ) then
+  cat $WORKDIR/fit22.tmp >>$WORKDIR/data.in
+else
+  set ndata = `wc -l $WORKDIR/fit22.tmp | awk '{print $1}'`
+  YWfit <$WORKDIR/fit22.tmp -col 1 2 $fitFunc >$WORKDIR/fit.tmp
+  set last = `grep '      X_input        Y_input       Y_fitted    Y_fit - Y_in        sigma    n' $WORKDIR/fit.tmp -n | tail -1 | awk '{print $1}' | sed 's/://g'`
+  @ nline = "$last" + 2
+echo nline=$nline ndata=$ndata
+#  head -$last $WORKDIR/fit.tmp | tail +$nline | head -$ndata | awk '{print $1 " " $2 }' >energy.tmp
+  tail +$nline $WORKDIR/fit.tmp | head -$ndata | awk '{print $1 " " $3 }' >$WORKDIR/energy.tmp
+#  tail +$nline $WORKDIR/fit.tmp | head -$ndata | awk '{printf "%.8lf %.8lf\n",$1,$3 }' >$WORKDIR/energy.tmp
+  cat $WORKDIR/fit22.tmp | awk '{print " " $3}' >$WORKDIR/dir.tmp
+  paste $WORKDIR/energy.tmp $WORKDIR/dir.tmp >>$WORKDIR/data.in
+endif
+rm $WORKDIR/*.tmp
+
+cd $WORKDIR
+#set line = "fitf fitf_e fvib fvib_e vdos vdos_e"
+if ( $elec == "_e" ) then
+  set line = "$mode $mode""_e"
+else
+  set line = "$mode"
+endif
+if ( $contcar != "" ) then
+  set cont = "-contcar $contcar"
+else
+  set cont = ""
+endif
+if ( $cijfile != "" ) then
+  set cijf = "-cijfile $cijfile"
+else
+  set cijf = ""
+endif
+foreach i ( $line ) 
+  ywthermo $i $cijf $cont $Imode $fitBt $fitF -Pr $Pressure $Hugoniot <data.in >$i
+  echo ywthermo $i $cijf $cont $Imode $fitBt $fitF -Pr $Pressure $Hugoniot <data.in
+end
+cd $pwd
+
+

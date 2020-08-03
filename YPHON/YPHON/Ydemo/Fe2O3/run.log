@@ -1,0 +1,6 @@
+time=Tue Jun  4 13:58:32 2013 host=PC WINDOWS USER
+ Yphon -pdis dfile.rho -Born dielecfij.out -plot
+time=Sat Oct 17 07:12:41 2015 host=PC WINDOWS USER
+ Yphon -pdis dfile.rho -Born dielecfij.out -plot
+time=Sat Oct 17 07:12:59 2015 host=PC WINDOWS USER
+ Yphon -pdis dfile.rho -Born dielecfij.out -plot -Gfile symmetry.mode

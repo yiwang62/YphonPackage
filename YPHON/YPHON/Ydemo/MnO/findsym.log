@@ -1,0 +1,37 @@
+FINDSYM, Version 3.2.3, August 2007
+Written by Harold T. Stokes and Dorian M. Hatch
+Brigham Young University
+ 
+poscar2findsym
+Tolerance:    0.00001
+Lattice vectors in cartesian coordinates:
+   2.25297  -2.25297   0.00000
+   0.00000  -2.25297  -2.25297
+   2.25297   0.00000  -2.25297
+Lattice parameters, a,b,c,alpha,beta,gamma:
+   3.18619   3.18619   3.18619  60.00000  60.00000  60.00000
+Vectors defining the unit cell (dimensionless coordinates):
+   1.00000   0.00000   0.00000
+   0.00000   1.00000   0.00000
+   0.00000   0.00000   1.00000
+Number of atoms in unit cell:
+  2
+Type of each atom:
+  1  2
+Position of each atom (dimensionless coordinates)
+   1   0.00000   0.00000   0.00000
+   2   0.50000   0.50000   0.50000
+------------------------------------------
+Space Group 225  Oh-5      Fm-3m     
+Origin at    0.00000   0.00000   0.00000
+Vectors a,b,c:
+   1.00000   1.00000  -1.00000
+  -1.00000   1.00000  -1.00000
+  -1.00000   1.00000   1.00000
+Values of a,b,c,alpha,beta,gamma:
+   4.50595   4.50595   4.50595  90.00000  90.00000  90.00000
+Atomic positions in terms of a,b,c:
+Wyckoff position a
+   1   0.00000   0.00000   0.00000
+Wyckoff position b
+   2   0.50000   0.50000   0.50000

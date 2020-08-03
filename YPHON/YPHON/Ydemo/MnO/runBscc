@@ -1,0 +1,2 @@
+#!/bin/csh -f
+Yphon -Born dielecfij.out -pdis dfile.scc -expt exp05.dat -plot -thr2 0.01 -bvec 

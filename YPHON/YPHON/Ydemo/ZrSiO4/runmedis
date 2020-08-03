@@ -1,0 +1,2 @@
+#!/bin/csh -f
+Yphon -Born dielecfij.out -bvec -plot -pdis dfile.tet2 -expt exp01.dat <superfij.out

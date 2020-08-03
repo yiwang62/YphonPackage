@@ -1,0 +1,4 @@
+time=Sat Oct 17 06:55:01 2015 host=PC WINDOWS USER
+ Yphon -plot
+time=Sat Oct 17 07:02:19 2015 host=PC WINDOWS USER
+ Yphon -pdis dfile.hcp -expt exp01.dat -plot

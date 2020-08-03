@@ -1,0 +1,2 @@
+#!/bin/csh -f
+Yphon -pdis dfile.rho -Born dielecfij.out -expt exp01.dat -plotmeV -bvec <superfij.out

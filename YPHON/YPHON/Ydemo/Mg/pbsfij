@@ -1,0 +1,10 @@
+#PBS -q debug
+#PBS -l nodes=1:ppn=8
+#PBS -S /bin/tcsh
+#PBS -j oe
+#PBS -l walltime=00:30:00
+
+setenv VSPCMD "eval `/usr/common/nsg/opt/Modules/3.2.7/bin/modulecmd tcsh load vasp/5.2.12`; mpirun -np 8 /usr/common/usg/vasp/5.2.12/bin/vasp"
+
+cd $PBS_O_WORKDIR
+$VSPCMD

@@ -1,0 +1,7 @@
+EDIFF=1.d-6
+PREC = A
+ISIF=0
+ISMEAR = -5
+IBRION = 6
+NSW=1    
+

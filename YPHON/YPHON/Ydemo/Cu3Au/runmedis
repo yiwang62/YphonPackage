@@ -1,0 +1,2 @@
+#!/bin/csh -f
+Yphon -pdis dfile.fcc -Born dielecfij.out -thr2 0.10 -expt exp01.dat -plot -bvec -sqs -nof -noNA -mall -Mass mass.1 <superfij.out

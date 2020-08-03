@@ -1,0 +1,4 @@
+#!/bin/csh -f
+Yphon -Born dielecfij.out -pdis dfile.scc <superfij.out -plot -thr2 0.01 -bvec
+pos2s Symmetry.pos
+Yphon -Born dielecfij.out -pdis dfile.scc <superfij.out -plot -thr2 0.01 -bvec -Gfile symmetry.mode
