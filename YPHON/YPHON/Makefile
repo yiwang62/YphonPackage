@@ -2,7 +2,7 @@
 CC = g++
 #CC = c++
 
-YGSL = gsl-2.6
+YGSL = gsl-1.13
 CFLAGS = -Bstatic -O3 -m64 -I ${YGSL}/include -DGSL -Wall
 #CFLAGS = -Bstatic -g -m64 -I ${YGSL}/include -DGSL -Wall
 GSLLIB = ${YGSL}/lib
