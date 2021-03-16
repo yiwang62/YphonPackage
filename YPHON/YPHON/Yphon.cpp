@@ -3,12 +3,14 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+//#include <unistd.h>
 #include <time.h>
 #include <complex>
 #include <fstream>
 #include <iostream>
 
 /* for mirosoft C++ */
+#define R_OK 1
 #ifdef WIN32
 #define R_OK 1
 #include <windows.h>
@@ -1766,7 +1768,7 @@ class RDIS {
 	    ATM **atomS, int natomS, CINDEX **cellA,
 	    int xM, int yM, int zM, CINDEX **cellI, int nrd=0) {
             int i, j, k;
-            double a[3], b[3], Ix[3];
+            double a[3], b[3], tIx[3];
             for (i=-nrd; i<=nrd; i++) {
                 for (j=-nrd; j<=nrd; j++) {
                     for (k=-nrd; k<=nrd; k++) {
@@ -1777,10 +1779,10 @@ class RDIS {
                         double dis = normal(b);
                         if (fabs(dis-R) < THR3) {
 //printf ("Rdis called with R = %lf, N= %d, xyz = %lf %lf %lf\n", R, N, x, y, z);
-                            Ix[0] = (double)i - xI[0];
-                            Ix[1] = (double)j - xI[1];
-                            Ix[2] = (double)k - xI[2];
-                            mproduct (Ix, scell_inv_avec, b);
+                            tIx[0] = (double)i - xI[0];
+                            tIx[1] = (double)j - xI[1];
+                            tIx[2] = (double)k - xI[2];
+                            mproduct (tIx, scell_inv_avec, b);
 			    if (NxS[N]==0) IxS[N] = (double *) malloc ( (size_t) 
 				(3*(sizeof(double))) );
 			    else IxS[N] = (double *) realloc (IxS[N], (size_t) 
@@ -3944,6 +3946,7 @@ int Nopt, nofetalerror=0;
 int NEDOS=10001;
 int PQ=0;
 int eps = 0;
+double nqwave = 1.e6;
 double DebCut = -1.0e0;
 
 	CPUTIM *cputim = new CPUTIM(); //starting CPU counting
@@ -4091,6 +4094,8 @@ double DebCut = -1.0e0;
                 dirE[2] = atof(option[++i]);
 		Anormal(dirE);
 		tranI = 2;
+            } else if (!strcmp(option[i], "-nqwave")) {
+                nqwave = atof(option[++i]); //define q mesh by total frequencies
             } else if (!strcmp(option[i], "-nq")) {
                 nqx = atoi(option[++i]); //define q mesh
                 nqy = atoi(option[++i]);
@@ -4816,7 +4821,7 @@ printf("why sqs compare = %d, ii=%d, natomP=%d\n", sqs, ii, natomP);
         double FACTOR = (double)natomP/(double)NX;
 
 	if (nqx < 0) {
-	    nqx = (int) pow(1.e6/(double)natomP, 1.e0/3.e0)+2;
+	    nqx = (int) pow(nqwave/(double)natomP, 1.e0/3.e0)+2;
 	    nqy = nqx;
 	    nqz = nqx;
 	}
@@ -5080,7 +5085,10 @@ printf("why sqs compare = %d, ii=%d, natomP=%d\n", sqs, ii, natomP);
 		else fprintf(plt, "#set terminal postscript landscape enhanced color \"Times_Roman\" 20\n");
 	    fprintf(plt, "set encoding iso_8859_1\n");
 	    fprintf(plt, "set pointsize 1.2\n");
+	    fprintf(plt, "set xlabel \"Frequency (THz)\"\n");
+	    fprintf(plt, "set ylabel \"Phonon DOS (1/THz)\"\n");
 	    fprintf(plt, "set size 0.95,0.95\n");
+	    fprintf(plt, "set key left top\n");
 	    if (pvdos) 
 		{
 			if (eps) fprintf(plt, "\nset output \"pvdos.eps\"\n\n");
@@ -5104,8 +5112,10 @@ printf("why sqs compare = %d, ii=%d, natomP=%d\n", sqs, ii, natomP);
 		/* if no experimental data provided */
 			if (!pvdos) 
 				fprintf(plt, "plot 'vdos.out' using ($1*funit*1.e-12):($2/funit*1.e12) notitle w l lt -1\n\n");
-			else
-				fprintf(plt, "plot 'pvdos.out' using ($1*funit):($2*$3/funit) notitle w l lt -1\n\n");
+			else {
+				fprintf(plt, "plot 'pvdos.out' using ($1*funit):($2*$3/funit) title 'GPDOS' w l lt 5 lw 2 lc 3, \\\n");
+				fprintf(plt, "     '' using ($1*funit):($2/funit) title 'PDOS' w l lt -1\n\n");
+                        }
 		}
 	    else 
 		{
@@ -5114,7 +5124,8 @@ printf("why sqs compare = %d, ii=%d, natomP=%d\n", sqs, ii, natomP);
 				fprintf(plt, "plot 'vdos.out' using ($1*funit*1.e-12):($2/funit*1.e12) notitle w l lt -1, \\\n");
 				fprintf(plt, "     '%s' using ($1*funit):($2/funit) notitle w lp pt 6 lt 1\n", expt);
 			} else {
-				fprintf(plt, "plot 'pvdos.out' using ($1*funit):($2*$3/funit) notitle w l lt -1, \\\n");
+				fprintf(plt, "plot 'pvdos.out' using ($1*funit):($2*$3/funit) title 'GPDOS' w l lt 5 lw 2 lc 3, \\\n");
+				fprintf(plt, "     '' using ($1*funit):($2/funit) title 'PDOS' w l lt -1, \\\n");
 				fprintf(plt, "     '%s' using ($1*funit):($2*funit) notitle w lp pt 6 lt 1\n", expt);
 			}
 	    }
@@ -5296,6 +5307,7 @@ printf("why sqs compare = %d, ii=%d, natomP=%d\n", sqs, ii, natomP);
             while (yetline(&line, &len, headplt)!=-1) fprintf(plt, "%s", line);
             while (yetline(&line, &len, midplt)!=-1) fprintf(plt, "%s", line);
 	    fprintf(plt, "set key left top\n");
+	    if (eps) fprintf(plt, "set ylabel \"Frequency (THz)\"\n\n");
 	    if (plot==1) fprintf(plt, "set ylabel \"Frequency (THz)\"\n\n");
 	    else if (plot==2) fprintf(plt, "set ylabel \"Frequency (cm)\"\n\n");
 	    else if (plot==3) fprintf(plt, "set ylabel \"Frequency (meV)\"\n\n");

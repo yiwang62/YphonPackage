@@ -2,14 +2,14 @@
 CC = g++
 #CC = c++
 
-YGSL = gsl-1.13
+YGSL = gsl-2.6
 CFLAGS = -Bstatic -O3 -m64 -I ${YGSL}/include -DGSL -Wall
 #CFLAGS = -Bstatic -g -m64 -I ${YGSL}/include -DGSL -Wall
 GSLLIB = ${YGSL}/lib
 CLDFLAGS = ${GSLLIB}/libgsl.a ${GSLLIB}/libgslcblas.a -lm
 
 #EXE = Ycell Yphon vaspfijxml Ymode Ymix yphon YphonN
-EXE = Ycell Yphon vaspfijxml Ymode Ymix YphonN YphonP YphonQ
+EXE = Ycell Yphon vaspfijxml Ymode Ymix
 
 all: $(EXE)
 
